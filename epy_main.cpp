@@ -3,10 +3,12 @@
 #include<vector>
 #include<iostream>
 #include<fstream>
+#include<cctype>
 namespace epy{
     using std::vector;
     using std::string;
     using std::ifstream;
+    using std::isalpha;
 
     class token;
     struct token_imp;
@@ -81,6 +83,12 @@ namespace epy{
         return tok;
     }
 
+    char charat(const string &str, size_t i) {
+        if (i < str.size())
+            return str[i];
+        return 0;
+    }
+    
     /**
        将字符串解析为token表
      */
@@ -90,10 +98,72 @@ namespace epy{
         size_t i = 0;
         int from = 0;
         
-        if (str.size())
-            char c = str[i];
-        while (i < str.size()) {
+        char c = charat(str, i);
+        while (c) {
             from = i;
+            string str_val;
+            
+            if ( c <= ' ') {
+                i++;
+                c = charat(str, i);
+            } else if (isalpha(c)) {
+                str_val += c;
+                i++;
+                for(;;) {
+                    c = charat(str, i);
+                    if (isalnum(c) || c == '_') {
+                        str_val += c;
+                        i++;
+                        continue;
+                    }
+                    break;
+                }
+                tokens.push_back(make_token(NAME, str_val, 0));
+            } else if (c >= '0' || c <= '9' ) {
+                str_val += c;
+                i++;
+                for(;;) {
+                    c = charat(str, i);
+                    if (c < '0' || c > '9')
+                        break;
+                    i++;
+                    str_val += c;
+                }
+                if (c == '.') {
+                    i++;
+                    str_val += c;
+                    for (;;) {
+                        c = charat(str, i);
+                        if (c < '0' || c > '9') {
+                            break;
+                        }
+                        i += 1;
+                        str_val += c;
+                    }
+                }
+                if (c === 'e' || c === 'E') {
+                    i += 1;
+                    str_val += c;
+                    c = charat(str, i);
+                    if (c === '-' || c === '+') {
+                        i += 1;
+                        str_val += c;
+                        c = charat(str, i);
+                    }
+                    if (c < '0' || c > '9') {
+                        make('number', str_val, strtod(str_val, 0)).error("Bad exponent");
+                    }
+                    do {
+                        i += 1;
+                        str_val += c;
+                        c = this.charAt(i);
+                    } while (c >= '0' && c <= '9');
+                }
+            }
+            else {
+                i++;
+                c = charat(str, i);
+            }
         }
     
         return tokens;
@@ -130,7 +200,8 @@ int main(int argc, char **argv)
     string file = "h:\\check\\epvm\\fe\\epy_main.cpp";
     if (argc > 2)
         file = argv[1];
-    cout<<epy::whole_file(file);
+    toks = epy::get_tokens(epy::whole_file(file));
+    cout<<toks.size()<<endl;
 
 
     return 0;
