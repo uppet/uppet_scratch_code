@@ -15,7 +15,11 @@ namespace epy{
 
     class token;
     struct token_imp;
+    class tdparser;
+    struct tdparser_imp;
 
+    struct scope_imp;
+    
     enum token_type {
         OPERATOR,
         NAME,
@@ -80,6 +84,58 @@ namespace epy{
             return *this;
         }
         ~token() {
+            dec_internal();
+        }
+    };
+
+    struct scope_imp {
+        void define (token tok) {
+            
+        }
+    };
+
+    struct tdparser_imp {
+        vector<token> (*tokens_gen)(const string &);
+        
+    };
+    /**
+       带引用管理tdparser对象
+     */
+    class tdparser {
+        tdparser_imp * ob;
+        int       * cnt;
+        void dec_internal() {
+            if (--(*cnt) < 1) {
+                //std::cout<<"die"<<ob<<ob->to_string()<<std::endl;
+                //std::cout<<ob->string_val<<std::endl;
+                delete cnt;
+                delete ob;
+            }
+        }
+        void inc_internal() {
+            *cnt += 1;
+        }
+    public:
+        tdparser(const tdparser &other) {
+            ob = other.ob;
+            cnt = other.cnt;
+            inc_internal();
+        }
+        tdparser() {
+            ob  = new tdparser_imp;
+            cnt = new int(1);
+        }
+        tdparser_imp * operator->() {
+            return ob;
+        }
+        tdparser& operator=(const tdparser &other) {
+            dec_internal();
+            ob = other.ob;
+            cnt = other.cnt;
+            inc_internal();
+            return *this;
+        }
+        ~tdparser() {
             dec_internal();
         }
     };
@@ -293,6 +349,13 @@ namespace epy{
             whole+="\n";
         }
         return whole;
+    }
+
+    /**
+       生成一个解析器对象
+    */
+    tdparser get_td_parser(vector<token> (*tokens_gen)(const string &)) {
+        tdparser prsr;
     }
 }
 
