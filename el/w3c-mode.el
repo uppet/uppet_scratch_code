@@ -1,4 +1,20 @@
 
+(defcustom w3c-idle-timer-delay 0.2
+  "Delay in secs before re-parsing after user makes changes.
+Multiplied by `w3c-dynamic-idle-timer-adjust', which see."
+  :type 'number
+  :group 'w3c-mode)
+(make-variable-buffer-local 'w3c-idle-timer-delay)
+
+(defmacro w3c-deflocal (name value &optional comment)
+  "Define a buffer-local variable NAME with VALUE and COMMENT."
+  `(progn
+     (defvar ,name ,value ,comment)
+     (make-variable-buffer-local ',name)))
+
+(w3c-deflocal w3c-mode-parse-timer nil "Private variable.")
+(w3c-deflocal w3c-mode-parsing nil "Private variable.")
+
 (defvar w3c-mode-syntax-table
   (let ((table (make-syntax-table)))
     (c-populate-syntax-table table)
@@ -148,7 +164,8 @@
 
 
 (defun w3c-reparse (&optional force)
-  t)
+  (message "Parsed OK %S" (current-time-string))
+  t)d
 
 (defun w3c-mode-edit (beg end len)
   "Schedule a new parse after buffer is edited.
@@ -166,6 +183,7 @@ if the edit occurred on a line different from the magic paren."
   ;; (setq js2-mode-buffer-dirty-p t) **/
   ;; (js2-mode-hide-overlay) **/
   ;; (js2-mode-reset-timer) **/
+  (w3c-mode-reset-timer)
 )
 
 (defun w3c-before-save ()
@@ -182,5 +200,13 @@ You can disable this by customizing `w3c-cleanup-whitespace'."
 (defun w3c-mode-exit ()
   "Exit `w3c-mode' and clean up."
   (interactive))
+
+(defsubst w3c-mode-reset-timer ()
+  "Cancel any existing parse timer and schedule a new one."
+  (if w3c-mode-parse-timer
+      (cancel-timer w3c-mode-parse-timer))
+  (setq w3c-mode-parsing nil)
+  (setq w3c-mode-parse-timer
+        (run-with-idle-timer w3c-idle-timer-delay nil #'w3c-reparse)))
 
 (provide 'w3c-mode)
