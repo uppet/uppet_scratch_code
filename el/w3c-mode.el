@@ -165,7 +165,7 @@ Multiplied by `w3c-dynamic-idle-timer-adjust', which see."
 
 (defun w3c-reparse (&optional force)
   (message "Parsed OK %S" (current-time-string))
-  t)d
+  t)
 
 (defun w3c-mode-edit (beg end len)
   "Schedule a new parse after buffer is edited.
