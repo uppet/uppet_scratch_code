@@ -5,6 +5,19 @@ Multiplied by `w3c-dynamic-idle-timer-adjust', which see."
   :type 'number
   :group 'w3c-mode)
 (make-variable-buffer-local 'w3c-idle-timer-delay)
+(defcustom w3c-dynamic-idle-timer-adjust 0
+  "Positive to adjust `w3c-idle-timer-delay' based on file size.
+The idea is that for short files, parsing is faster so we can be
+more responsive to user edits without interfering with editing.
+The buffer length in characters (typically bytes) is divided by
+this value and used to multiply `w3c-idle-timer-delay' for the
+buffer.  For example, a 21k file and 10k adjust yields 21k/10k
+== 2, so w3c-idle-timer-delay is multiplied by 2.
+If `w3c-dynamic-idle-timer-adjust' is 0 or negative,
+`w3c-idle-timer-delay' is not dependent on the file size."
+  :type 'number
+  :group 'w3c-mode)
+
 
 (defmacro w3c-deflocal (name value &optional comment)
   "Define a buffer-local variable NAME with VALUE and COMMENT."
@@ -141,8 +154,8 @@ Multiplied by `w3c-dynamic-idle-timer-adjust', which see."
        (lambda (state) nil))
 
   ;; Experiment:  make reparse-delay longer for longer files.
-  (if (plusp js2-dynamic-idle-timer-adjust)
-      (setq js2-idle-timer-delay
+  (if (plusp w3c-dynamic-idle-timer-adjust)
+      (setq w3c-idle-timer-delay
             (* js2-idle-timer-delay
                (/ (point-max) js2-dynamic-idle-timer-adjust))))
 
@@ -166,6 +179,9 @@ Multiplied by `w3c-dynamic-idle-timer-adjust', which see."
 (defun w3c-reparse (&optional force)
   (message "Parsed OK %S" (current-time-string))
   t)
+
+(defun w3c-mode-create-imenu-index ()
+  nil)
 
 (defun w3c-mode-edit (beg end len)
   "Schedule a new parse after buffer is edited.
