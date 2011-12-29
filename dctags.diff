@@ -1,0 +1,106 @@
+Index: entry.c
+===================================================================
+--- entry.c	(revision 781)
++++ entry.c	(working copy)
+@@ -141,7 +141,7 @@
+ 
+ static void addPseudoTags (void)
+ {
+-	if (! Option.xref)
++	if (! Option.xref || ! Option.rel)
+ 	{
+ 		char format [11];
+ 		const char *formatComment = "unknown format";
+@@ -823,6 +823,10 @@
+ 			if (! tag->isFileEntry)
+ 				length = writeXrefEntry (tag);
+ 		}
++        else if (Option.rel)
++        {
++            
++        }
+ 		else if (Option.etags)
+ 			length = writeEtagsEntry (tag);
+ 		else
+Index: options.c
+===================================================================
+--- options.c	(revision 781)
++++ options.c	(working copy)
+@@ -148,6 +148,7 @@
+ 	FALSE,      /* --tag-relative */
+ 	FALSE,      /* --totals */
+ 	FALSE,      /* --line-directives */
++    FALSE,      /* --rel */
+ #ifdef DEBUG
+ 	0, 0        /* -D, -b */
+ #endif
+@@ -274,6 +275,8 @@
+  {1,"       Enable verbose messages describing actions on each source file."},
+  {1,"  --version"},
+  {1,"       Print version identifier to standard output."},
++ {1,"  --rel"},
++ {1,"       Print class rel pairs.."},
+  {1, NULL}
+ };
+ 
+@@ -1365,6 +1368,13 @@
+ 	exit (0);
+ }
+ 
++static void processRelOption (
++		const char *const option __unused__,
++		const char *const parameter __unused__)
++{
++	Option.rel = TRUE;
++}
++
+ /*
+  *  Option tables
+  */
+@@ -1391,6 +1401,7 @@
+ 	{ "options",                processOptionFile,              FALSE   },
+ 	{ "sort",                   processSortOption,              TRUE    },
+ 	{ "version",                processVersionOption,           TRUE    },
++    { "rel",                    processRelOption,               TRUE    },
+ };
+ 
+ static booleanOption BooleanOptions [] = {
+Index: options.h
+===================================================================
+--- options.h	(revision 781)
++++ options.h	(working copy)
+@@ -108,6 +108,7 @@
+ 	boolean tagRelative;    /* --tag-relative file paths relative to tag file */
+ 	boolean printTotals;    /* --totals  print cumulative statistics */
+ 	boolean lineDirectives; /* --linedirectives  process #line directives */
++    boolean rel;            /* --rel print rel pairs */
+ #ifdef DEBUG
+ 	long debugLevel;        /* -D  debugging output */
+ 	unsigned long breakLine;/* -b  source line at which to call lineBreak() */
+Index: c.c
+===================================================================
+--- c.c	(revision 781)
++++ c.c	(working copy)
+@@ -1154,6 +1154,9 @@
+ 		e.kindName		= tagName (type);
+ 		e.kind			= tagLetter (type);
+ 
++        if ((!strcmp(e.kindName, "class") || !strcmp(e.kindName, "struct")) && vStringValue(st->parentClasses))
++            printf("%50s\t --D \t %50s\n", e.name, vStringValue(st->parentClasses));
++
+ 		findScopeHierarchy (scope, st);
+ 		addOtherFields (&e, type, st, scope, typeRef);
+ 
+Index: main.c
+===================================================================
+--- main.c	(revision 781)
++++ main.c	(working copy)
+@@ -126,7 +126,7 @@
+ {
+ 	boolean toStdout = FALSE;
+ 
+-	if (Option.xref  ||  Option.filter  ||
++	if (Option.xref || Option.rel  ||  Option.filter  ||
+ 		(Option.tagFileName != NULL  &&  (strcmp (Option.tagFileName, "-") == 0
+ #if defined (VMS)
+ 	|| strcmp (Option.tagFileName, "sys$output") == 0
