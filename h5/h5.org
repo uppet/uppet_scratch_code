@@ -9,7 +9,7 @@
 #+BIND: org-export-html-postamble "</section>"
 ##+TODO: biglogo norm ok /maybe latter
 
-* H5														  :biglogo:green:
+* H5																:biglogo:
 
 * Simple html5slides template for org-mode
 
