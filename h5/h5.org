@@ -5,13 +5,13 @@
 #+BIND: org-export-html-auto-postamble nil
 #+BIND: org-export-html-style "<!-- configuration parameters --> <meta charset='utf-8'>"
 #+BIND: org-export-html-style-extra "<!-- H5 JS --> <script src='jquery.js' type='text/javascript'></script> <script src='org-slides.js' type='text/javascript'></script> <script src='slides.js' type='text/javascript'></script>"
-#+BIND: org-export-html-preamble "<section class='slides layout-regular template-default'>"
-#+BIND: org-export-html-postamble "</section>"
+##+BIND: org-export-html-preamble "<section class='slides layout-regular template-default'>"
+##+BIND: org-export-html-postamble "</section>"
 ##+TODO: biglogo norm ok /maybe latter
 
 * H5																:biglogo:
 
-* Simple html5slides template for org-mode
+* Simple html5slides template for emacs's org-mode
 
 ** Design by Joyer Huang												:red:
 
@@ -64,15 +64,11 @@ int main() {
 
 * IFrame
 #+BEGIN_HTML
-  <iframe src='http://www.google.com/doodle4google/history.html'></iframe>
+  <iframe src='http://douban.com'></iframe>
 #+END_HTML
 
 * Thanks															 :blue:
-  - one
-  - two :build:
-  - three
 
-** ok                                                                   :red:
 
 
 
