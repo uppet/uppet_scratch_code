@@ -39,6 +39,7 @@ function addBuild(i) {
 
 
 $(document).ready(function () {
+    $("body").css("display:none");
 	$("body").each(wrapSectionMain);
 	$("div#preamble").detach();
 	$("div#postamble").detach();

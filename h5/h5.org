@@ -67,6 +67,12 @@ int main() {
   <iframe src='http://www.google.com/doodle4google/history.html'></iframe>
 #+END_HTML
 
-* Thanks															 :yellow:
+* Thanks															 :blue:
+  - one
+  - two :build:
+  - three
+
+** ok                                                                   :red:
+
 
 
