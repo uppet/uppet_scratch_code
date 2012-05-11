@@ -52,13 +52,77 @@ If `w3c-dynamic-idle-timer-adjust' is 0 or negative,
 (define-abbrev-table 'w3c-mode-abbrev-table ())
 
 
+(defun w3c-match-count (re str)
+  "find match number of RE in STR"
+  (with-temp-buffer
+    (let* ((cnt 0)
+           end
+           (succ t))
+      (insert str)
+      (goto-char 0)
+      (setq end (save-excursion (end-of-buffer) (point)))
+      (while (and (not (eobp)) succ)
+        (setq succ (search-forward-regexp re end t))
+        (when succ (goto-char succ) (incf cnt)))
+      cnt)))
+
+(defun w3c-last-line-dir ()
+  (if (= 1 (line-number-at-pos))
+      0
+    (save-excursion
+      (previous-line)
+      (let* ((line-str (thing-at-point 'line))
+             (open (w3c-match-count "\\(<[^/].*[^/]>\\)\\|\\((\\)\\|\\({\\)" line-str))
+             (close (w3c-match-count "\\(</.*>\\)\\|\\()\\)\\|\\(}\\)" line-str)))
+        (- open close)))))
+
+(defun w3c-line-dir ()
+  (if (= 1 (line-number-at-pos))
+      0
+    (let* ((line-str (thing-at-point 'line))
+           (open (w3c-match-count "\\(<[^/].*[^/]>\\)\\|\\((\\)\\|\\({\\)" line-str))
+           (close (w3c-match-count "\\(</.*>\\)\\|\\()\\)\\|\\(}\\)" line-str)))
+      (- open close))))
+
+(defun w3c-is-last-line-open ()
+  (> (w3c-last-line-dir) 0))
+
+(defun w3c-is-last-line-close ()
+  (< (w3c-last-line-dir) 0))
+
+(defun w3c-last-line-indent ()
+  (if (= 1 (line-number-at-pos))
+      0
+    (save-excursion
+      (previous-line)
+      (w3c-current-indent))))
+
+(defun w3c-is-line-close ()
+  (< (w3c-line-dir) 0))
+
+(defun w3c-current-indent ()
+  "current line's indent column"
+  (save-excursion (back-to-indentation)(current-column)))
+
 (defun w3c-indent-line ()
   "Indent the current line according to W3C context."
   (interactive)
-  )
+  (let* ((last-open (w3c-is-last-line-open))
+         (last-indent (w3c-last-line-indent))
+         (this-close (w3c-is-line-close))
+         (indent (+ last-indent (if last-open 4 0) (if this-close -4 0))))
+    (when (< indent 0)
+      (setq indent 0))
+    (indent-line-to indent)))
 (defun w3c-indent-region (start end)
   "Indent the region, but don't use bounce indenting."
-  )
+  (save-excursion
+    (goto-char start)
+    (setq end (copy-marker end t))
+    (while (< (point) end)
+      (w3c-indent-line)
+      (next-line))))
+
   ; nil for byte-compiler
 
 
