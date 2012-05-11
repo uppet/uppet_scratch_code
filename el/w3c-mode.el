@@ -1,4 +1,4 @@
-
+(require 'cc-mode)
 (defcustom w3c-idle-timer-delay 0.2
   "Delay in secs before re-parsing after user makes changes.
 Multiplied by `w3c-dynamic-idle-timer-adjust', which see."
@@ -72,7 +72,7 @@ If `w3c-dynamic-idle-timer-adjust' is 0 or negative,
     (save-excursion
       (previous-line)
       (let* ((line-str (thing-at-point 'line))
-             (open (w3c-match-count "\\(<[^/].*[^/]>\\)\\|\\((\\)\\|\\({\\)" line-str))
+             (open (w3c-match-count "\\(<[^/?!].*[^/?!]>\\)\\|\\((\\)\\|\\({\\)" line-str))
              (close (w3c-match-count "\\(</.*>\\)\\|\\()\\)\\|\\(}\\)" line-str)))
         (- open close)))))
 
@@ -80,7 +80,7 @@ If `w3c-dynamic-idle-timer-adjust' is 0 or negative,
   (if (= 1 (line-number-at-pos))
       0
     (let* ((line-str (thing-at-point 'line))
-           (open (w3c-match-count "\\(<[^/].*[^/]>\\)\\|\\((\\)\\|\\({\\)" line-str))
+           (open (w3c-match-count "\\(<[^/?!].*[^/?]>\\)\\|\\((\\)\\|\\({\\)" line-str))
            (close (w3c-match-count "\\(</.*>\\)\\|\\()\\)\\|\\(}\\)" line-str)))
       (- open close))))
 
@@ -107,10 +107,10 @@ If `w3c-dynamic-idle-timer-adjust' is 0 or negative,
 (defun w3c-indent-line ()
   "Indent the current line according to W3C context."
   (interactive)
-  (let* ((last-open (w3c-is-last-line-open))
+  (let* ((last-open (w3c-last-line-dir))
          (last-indent (w3c-last-line-indent))
-         (this-close (w3c-is-line-close))
-         (indent (+ last-indent (if last-open 4 0) (if this-close -4 0))))
+         (this-close (w3c-line-dir))
+         (indent (+ last-indent (* last-open 4) (* this-close -4))))
     (when (< indent 0)
       (setq indent 0))
     (indent-line-to indent)))
