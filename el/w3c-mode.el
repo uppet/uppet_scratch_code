@@ -77,12 +77,10 @@ If `w3c-dynamic-idle-timer-adjust' is 0 or negative,
         (- open close)))))
 
 (defun w3c-line-dir ()
-  (if (= 1 (line-number-at-pos))
-      0
-    (let* ((line-str (thing-at-point 'line))
-           (open (w3c-match-count "\\(<[^/?!].*[^/?]>\\)\\|\\((\\)\\|\\({\\)" line-str))
-           (close (w3c-match-count "\\(</.*>\\)\\|\\()\\)\\|\\(}\\)" line-str)))
-      (- open close))))
+  (let* ((line-str (thing-at-point 'line))
+		 (open (w3c-match-count "\\(<[^/?!].*[^/?]>\\)\\|\\((\\)\\|\\({\\)" line-str))
+		 (close (w3c-match-count "\\(</.*>\\)\\|\\()\\)\\|\\(}\\)" line-str)))
+	(- open close)))
 
 (defun w3c-is-last-line-open ()
   (> (w3c-last-line-dir) 0))
@@ -110,7 +108,7 @@ If `w3c-dynamic-idle-timer-adjust' is 0 or negative,
   (let* ((last-open (w3c-last-line-dir))
          (last-indent (w3c-last-line-indent))
          (this-close (w3c-line-dir))
-         (indent (+ last-indent (* last-open 4) (* this-close -4))))
+         (indent (+ last-indent (if (> last-open 0) (* last-open 4) 0) (if (< this-close 0) (* this-close 4) 0))))
     (when (< indent 0)
       (setq indent 0))
     (when (not (= indent (w3c-current-indent)))
