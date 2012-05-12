@@ -113,7 +113,8 @@ If `w3c-dynamic-idle-timer-adjust' is 0 or negative,
          (indent (+ last-indent (if last-open 4 0) (if this-close -4 0))))
     (when (< indent 0)
       (setq indent 0))
-    (indent-line-to indent)))
+    (when (not (= indent (w3c-current-indent)))
+      (indent-line-to indent))))
 (defun w3c-indent-region (start end)
   "Indent the region, but don't use bounce indenting."
   (save-excursion
