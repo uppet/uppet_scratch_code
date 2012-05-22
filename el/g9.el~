@@ -14,5 +14,4 @@
     (dolist (w (list w1 w2 w3))
       (select-window w)
       (split-window (selected-window) (funcall 3rd (window-height)))
-      (split-window (window-next-sibling)))
-    (select-window w1)))
+      (split-window (window-next-sibling)))))

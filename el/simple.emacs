@@ -1,8 +1,17 @@
 
 ;customize path 路径设定
-(setenv "HOME" "e:/emacswd")
-;(setenv "HOME" "C:/Users/ivy/AppData/Roaming/")
+(when (equal (getenv "COMPUTERNAME") "IVY-PC")
+                                        ; (setenv "HOME" "C:/Users/ivy/AppData/Roaming/")
+  (setenv "HOME" "e:/emacswd"))
+
+(when (equal (getenv "COMPUTERNAME") "USER-PC")
+  (setenv "HOME" "D:/emacswd")
+                                        ;(setenv "HOME" "c:/Users/user/AppData/Roaming")
+  (setenv "PATH" (concat (getenv "PATH") ";E:\\Green\\mingw\\msys\\1.0\\bin\\"))
+  (setenv "PATH" (concat (getenv "PATH") ";D:\\Soft\\TortoiseSVN\\bin\\")))
+
 ;shortcuts
+
 ;(fancy-startup-screen)
 ;set path=g:\green\mingw\bin;E:\Soft\7-Zip;%PATH%
 ;configure --without-tiff  --with-gcc --without-gnutls --cflags "-I ../../libs/libXpm-3.5.10/include/ -I ../../libs/libXpm-3.5.10/src -D FOR_MSW  -I ../../libs/libpng-1.2.49 -I ../../libs/zlib-1.2.6 -I ../../libs/jpeg-6b-4-lib/include -I ../../libs/giflib-4.1.5/lib" 
