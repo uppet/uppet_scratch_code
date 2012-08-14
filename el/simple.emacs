@@ -17,6 +17,8 @@
 ;configure --without-tiff  --with-gcc --without-gnutls --cflags "-I ../../libs/libXpm-3.5.10/include/ -I ../../libs/libXpm-3.5.10/src -D FOR_MSW  -I ../../libs/libpng-1.2.49 -I ../../libs/zlib-1.2.6 -I ../../libs/jpeg-6b-4-lib/include -I ../../libs/giflib-4.1.5/lib" 
 ;configure --without-gif --without-jpeg --without-tiff --without-png --without-xpm --with-msvc --without-gnutls
 ;(print (frame-parameters nil))
+;(add-to-list 'load-path "/opt/dev/bld/projectile/")
+
 
 
 ;;;must key
@@ -32,6 +34,23 @@
 (global-set-key (kbd "C-c r") 'jr-global-root-file)
 
 ;;;must mode
+(defun ifp ()
+  (interactive)
+  (save-excursion
+	(let ((enable-recursive-minibuffers t))
+	  (visit-tags-table-buffer))
+	(find-file
+	 (expand-file-name
+	  (ido-completing-read
+	   "Project file: " (tags-table-files) nil t)))))
+(defun ipf ()
+  (interactive)
+  (require 'projectile)
+  (setq projectile-enable-caching t)
+  (find-file
+   (expand-file-name
+	(ido-completing-read
+	 "Project file: " (projectile-get-project-files (projectile-get-project-root)) nil t))))
 (ido-mode 1)
 (transient-mark-mode 0)
 (require 'uniquify)
