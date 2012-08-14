@@ -29,6 +29,7 @@
 (global-set-key (kbd "C-c o") 'occur)
 (global-set-key (kbd "<f7>") 'compile)
 (global-set-key (kbd "M-o") 'jr-find-alt-buf-or-file)
+(global-set-key (kbd "C-c r") 'jr-global-root-file)
 
 ;;;must mode
 (ido-mode 1)
@@ -74,6 +75,53 @@
 		   (switch-to-buffer (get-buffer fn-new)))
 		  ((and (> (length ffn-new) 0) (file-exists-p ffn-new))
 		   (find-file ffn-new)))))
+(defun file-jump-list-enter ()
+  "jump to a file under cursor in file-jump-list-mode"
+  (interactive)
+
+  (unless file-jump-list-basename
+	(setq file-jump-list-basename (read-directory-name "base dir:")))
+  (let* ((line-path (buffer-substring-no-properties (save-excursion (beginning-of-line) (point))
+													(save-excursion (end-of-line) (point))))
+		 (absolutep (file-name-absolute-p  line-path)))
+	(if (eq last-input-char 'return)
+		(if absolutep (find-file line-path)
+		  (find-file (concat file-jump-list-basename line-path)))
+	  (if absolutep (find-file-other-window line-path)
+		(find-file-other-window (concat file-jump-list-basename line-path))))))
+(defun file-jump-list-mode ()
+  "treat a buffer as a file jump list"
+  (interactive)
+  (kill-all-local-variables)
+  (setq major-mode 'file-jump-list-mode)
+  (setq mode-name "file jump")
+  (make-local-variable 'file-jump-list-basename)
+  (setq file-jump-list-basename nil)
+  (local-set-key (kbd "<return>") 'file-jump-list-enter)
+  (local-set-key (kbd "C-m") 'file-jump-list-enter))
+
+(defun jr-global-root-file ()
+  (interactive)
+  (ignore-errors (kill-buffer "*GROOT*"))
+  (save-excursion
+	(let ((buf)
+		  (name (read-string "Name:")))
+	  (let (target)
+		(if (setq target (locate-dominating-file default-directory ".cr_root"))
+			(progn (cd target) 
+				   (setq buf (pop-to-buffer "*GROOT*"))
+				   (file-jump-list-mode)
+				   (setq file-jump-list-basename target))
+		  (error "no .cr_root founded")))
+	  (setq name (replace-regexp-in-string "\\*" ".*" name))
+	  (start-process "GROOT" buf "grep" "-i" name ".cr_root")
+	  (set-process-sentinel (get-buffer-process (current-buffer))
+							(lambda (process event)
+							  (when (string-match "finished" event)
+								(goto-char (point-max))
+								(insert
+								 (format "Process: %s had finished" process))
+								(goto-char (point-min))))))))
 ;;;;;;;;;;;;;;;;;;;;;;;;jr code end
 
 ;;;must hook
