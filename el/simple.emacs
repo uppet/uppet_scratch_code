@@ -72,6 +72,10 @@
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;must jr code
+(defun cmax ()
+  (interactive)
+  (chmod (buffer-file-name)
+         (file-modes-symbolic-to-number "a+x" (file-modes (buffer-file-name)))))
 (defun jr-flip-file-name (fn)
   (cond ((string-match ".*\\.cpp" fn)
          (replace-regexp-in-string "\\.cpp" ".h" fn))
@@ -117,30 +121,32 @@
   (make-local-variable 'file-jump-list-basename)
   (setq file-jump-list-basename nil)
   (local-set-key (kbd "<return>") 'file-jump-list-enter)
+  (local-set-key (kbd "C-<return>") (lambda () (interactive) (clone-buffer) (rename-buffer (read-string "clone name:"))))
   (local-set-key (kbd "C-m") 'file-jump-list-enter))
 
 (defun jr-global-root-file ()
   (interactive)
   (ignore-errors (kill-buffer "*GROOT*"))
   (save-excursion
-	(let ((buf)
-		  (name (read-string "Name:")))
-	  (let (target)
-		(if (setq target (locate-dominating-file default-directory ".cr_root"))
-			(progn (cd target) 
-				   (setq buf (pop-to-buffer "*GROOT*"))
-				   (file-jump-list-mode)
-				   (setq file-jump-list-basename target))
-		  (error "no .cr_root founded")))
-	  (setq name (replace-regexp-in-string "\\*" ".*" name))
-	  (start-process "GROOT" buf "grep" "-i" name ".cr_root")
-	  (set-process-sentinel (get-buffer-process (current-buffer))
-							(lambda (process event)
-							  (when (string-match "finished" event)
-								(goto-char (point-max))
-								(insert
-								 (format "Process: %s had finished" process))
-								(goto-char (point-min))))))))
+    (let ((buf)
+          (name (read-string "Name:")))
+      (let (target)
+        (if (setq target (locate-dominating-file default-directory ".cr_root"))
+            (progn (setq buf (pop-to-buffer "*GROOT*"))
+                   (cd target) 
+
+                   (file-jump-list-mode)
+                   (setq file-jump-list-basename target))
+          (error "no .cr_root founded")))
+      (setq name (replace-regexp-in-string "\\*" ".*" name))
+      (start-process "GROOT" buf "grep" "-i" name ".cr_root")
+      (set-process-sentinel (get-buffer-process (current-buffer))
+                            (lambda (process event)
+                              (when (string-match "finished" event)
+                                (goto-char (point-max))
+                                (insert
+                                 (format "Process: %s had finished" process))
+                                (goto-char (point-min))))))))
 ;;;;;;;;;;;;;;;;;;;;;;;;jr code end
 
 ;;;must hook
