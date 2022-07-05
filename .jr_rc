@@ -1,0 +1,64 @@
+
+rejr() {
+       . ~/.jr_rc
+       echo jrrc reload ok
+}
+
+env_for_compile() {
+    prepend_PATH dart/depot_tools
+    append_PATH ~/pre/bin/
+    export HTTP_PROXY=127.0.0.1:7890
+}
+
+
+prepend_PATH() {
+    readarray -td: pathArray <<<"$PATH"
+    # echo appending  $1 onto ${pathArray[0]}
+    if [ "$1" == "${pathArray[0]}" ] ; then
+	echo env PATH untouched
+    else
+	export PATH=$1:$PATH
+	echo env PATH touched
+    fi
+}
+
+hdrop_PATH() {
+    readarray -td: pathArray <<<"$PATH"
+    # echo appending  $1 onto ${pathArray[0]}
+    if [ "" == "${pathArray[0]}" ] ; then
+	echo env PATH untouched
+    else
+	echo droping ${pathArray[0]} in head PATH
+	unset pathArray[0]
+	export PATH=$(export IFS=':' ;echo "${pathArray[*]}")
+    fi
+}
+
+
+append_PATH() {
+    readarray -td: pathArray <<<"$PATH"
+    # echo appending  $1 onto ${pathArray[0]}
+    if [ "$1" == "${pathArray[-1]}" ] ; then
+	echo env PATH untouched
+    else
+	export PATH=$PATH:$1
+	echo env PATH touched
+    fi
+}
+
+
+tdrop_PATH() {
+    readarray -td: pathArray <<<"$PATH"
+    # echo appending  $1 onto ${pathArray[0]}
+    if [ "" == "${pathArray[-1]}" ] ; then
+	echo env PATH untouched
+    else
+	echo droping ${pathArray[0]} in tail PATH 
+	unset pathArray[-1]
+	export PATH=$(export IFS=':' ;echo "${pathArray[*]}")
+    fi
+}
+
+path() {
+    echo $PATH
+}
