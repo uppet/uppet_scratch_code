@@ -38,7 +38,7 @@ hdrop_PATH() {
 append_PATH() {
     readarray -td: pathArray <<<"$PATH"
     # echo appending  $1 onto ${pathArray[0]}
-    if [ "$1" == "${pathArray[-1]}" ] ; then
+    if [ '$1' == '${pathArray[-1]}' ] ; then
 	echo env PATH untouched
     else
 	export PATH=$PATH:$1
@@ -50,7 +50,7 @@ append_PATH() {
 tdrop_PATH() {
     readarray -td: pathArray <<<"$PATH"
     # echo appending  $1 onto ${pathArray[0]}
-    if [ "" == "${pathArray[-1]}" ] ; then
+    if [ '' == '${pathArray[-1]}' ] ; then
 	echo env PATH untouched
     else
 	echo droping ${pathArray[0]} in tail PATH 
