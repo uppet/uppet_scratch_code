@@ -31,9 +31,40 @@ If SUB is not found in FULL, returns nil."
                ;; Extract the suffix (from end of match to end of full)
                (suffix (substring full end nil)))
           ;; Return the list of (prefix sub suffix)
-          (list sub prefix suffix))
+          (list (pf-complete-ann sub full)
+                (pf-complete-ann prefix full)
+                (pf-complete-ann suffix full)
+                ;; sub prefix suffix
+                ))
       ;; Substring not found, return nil
       nil)))
+
+(defun pf-longest-common-substring-containing (sub strings)
+  "return STRINGS lcs，containing SUB。"
+  (when (< (length strings) 1)
+    (error "need at least on string in STRINGS"))
+
+  (let ((result "")
+        (first-str (car strings))
+        (other-strs (cdr strings)))
+
+    ;; gen candiates from first string and check
+    (dotimes (start (length first-str))
+      (dotimes (len (- (length first-str) start))
+        (let ((current-len (- (length first-str) start len))
+              (candidate (substring first-str start (- (length first-str) len))))
+          (when (and (>= current-len (length result))
+                     (string-match-p (regexp-quote sub) candidate)
+                     (cl-every (lambda (s)
+                                 (string-match-p (regexp-quote candidate) s))
+                               other-strs))
+            (setq result candidate)))))
+
+    (if (> (length result) 0) result nil)))
+
+(defun pf-anno (sub full)
+  "anno to make completions UI workd"
+  (list full "" ""))
 
 (defun pf-ffp1-buffer (dir s)
   (let ((this-try (concat dir s)))
@@ -46,13 +77,14 @@ If SUB is not found in FULL, returns nil."
         nil))))
 
 (defun pf-loclist ()
-  (let ((pf-list-buf (pf-ffp1-buffer default-directory "full_list.txt")))
+  (let ((pf-list-buf (pf-ffp1-buffer default-directory pf-list-name)))
     (switch-to-buffer (current-buffer))
     (if (not (eq pf-list-buf (current-buffer)))
         pf-list-buf
       nil)))
 
 (defconst pf-limit 50 "limit the search count of pf-find")
+(defconst pf-list-name "full_list.txt" "my custom file for pf-find to find and search")
 
 (defun pf-head-col (buf word)
   (save-excursion
@@ -85,11 +117,31 @@ If SUB is not found in FULL, returns nil."
         (seq-filter pred ret)
       ret)))
 
+(defun pf-complete-ann (cand full)
+  (message "[%s] in [%s]" cand full)
+  ;; cand)
+  (if (and full cand (stringp cand) (stringp full) (> (length cand) 1))
+      (progn
+        (message "put [%s] in [%s]" cand full)
+        (put-text-property
+         1 (length cand)
+         'completion--string (substring-no-properties full)
+         cand)
+        cand)
+    cand))
+
+;; (defun pf-make-complete-aff (v)
+;;   (lambda (completions)
+;;     ;; (message "[[%s]]" completions)
+;;     (seq-filter 'identity
+;;                 (mapcar (lambda (x)
+;;                           ;; (lambda (cand) (pf-complete-ann cand x)) ;; 'identity
+;;                           ;; (pf-split-string-by-substring v x)
+;;                           (pf-anno v x)
+;;                           )
+;;                         completions))))
 (defun pf-make-complete-aff (v)
-  (lambda (completions)
-    ;; (message "[[%s]]" completions)
-    (seq-filter 'identity
-                (mapcar (lambda (x) (pf-split-string-by-substring v x)) completions))))
+  #'identity)
 
 (defun pf-make-complete-colfun (ctx)
   (lambda (rstring pred flag)
@@ -99,6 +151,7 @@ If SUB is not found in FULL, returns nil."
              (cond ((eq ret nil) nil)
                    ((and (eq (length ret) 1) (eq (car ret) rstring)) t)
                    ((eq (length ret) 1)  (car ret))
+                   ((< (length ret) (1- pf-limit)) (pf-longest-common-substring-containing rstring ret))
                    (t rstring))))
           ((eq flag t)
            (pf-complete-test rstring pred ctx))
@@ -114,7 +167,7 @@ If SUB is not found in FULL, returns nil."
            ;;                            `((affixation-function
            ;;                               . ,(pf-make-complete-aff rstring)))))
            (cons 'metadata `((affixation-function
-                                         . ,(pf-make-complete-aff rstring)))))
+                              . ,(pf-make-complete-aff rstring)))))
            ;; (cons 'metadata `((affixation-function
            ;;                               . ,#'make-complete-col-aff-fun))))
           ((and (consp flag) (eq (car flag) 'boundaries))
@@ -123,6 +176,6 @@ If SUB is not found in FULL, returns nil."
 
 (defun pf-find ()
   (interactive)
-  (pf-fffp (completing-read ":" (pf-make-complete-colfun '()))))
+  (pf-fffp (completing-read "PF:: " (pf-make-complete-colfun '()))))
 
 ;;; (global-set-key (kbd "C-c p") 'pf-find)
