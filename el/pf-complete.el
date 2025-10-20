@@ -113,9 +113,10 @@ If SUB is not found in FULL, returns nil."
 (defun pf-complete-test (v pred ctx)
   (let ((ret (seq-filter #'(lambda (x) (string-match (regexp-quote v) x))
                          (pf-collection (cons `(word . ,v) ctx)))))
-    (if pred
-        (seq-filter pred ret)
-      ret)))
+    (let ((res (if pred
+                   (seq-filter pred ret)
+                 ret)))
+      res)))
 
 (defun pf-complete-ann (cand full)
   (message "[%s] in [%s]" cand full)
@@ -125,23 +126,28 @@ If SUB is not found in FULL, returns nil."
         (message "put [%s] in [%s]" cand full)
         (put-text-property
          1 (length cand)
+         'completion--unquoted (substring-no-properties full)
+         cand)
+        (put-text-property
+         1 (length cand)
          'completion--string (substring-no-properties full)
          cand)
         cand)
     cand))
 
-;; (defun pf-make-complete-aff (v)
-;;   (lambda (completions)
-;;     ;; (message "[[%s]]" completions)
-;;     (seq-filter 'identity
-;;                 (mapcar (lambda (x)
-;;                           ;; (lambda (cand) (pf-complete-ann cand x)) ;; 'identity
-;;                           ;; (pf-split-string-by-substring v x)
-;;                           (pf-anno v x)
-;;                           )
-;;                         completions))))
 (defun pf-make-complete-aff (v)
-  #'identity)
+  (lambda (completions)
+    ;; (message "[[%s]]" completions)
+    (seq-filter 'identity
+                (mapcar (lambda (x)
+                          ;; (lambda (cand) (pf-complete-ann cand x)) ;; 'identity
+                          ;; (pf-split-string-by-substring v x)
+                          (pf-anno v x)
+                          ;; (list x "" "")
+                          )
+                        completions))))
+;; (defun pf-make-complete-aff (v)
+;;   #'identity)
 
 (defun pf-make-complete-colfun (ctx)
   (lambda (rstring pred flag)
